@@ -7,6 +7,8 @@ var tasksToDoEl = document.querySelector("#tasks-to-do");
 var tasksInProgressEl = document.querySelector("#tasks-in-progress");
 var tasksCompletedEl = document.querySelector("#tasks-completed");
 
+var tasks = [];
+
 var taskFormHandler = function(event) {
     event.preventDefault();
 
@@ -19,6 +21,7 @@ var taskFormHandler = function(event) {
         return false;
     }
 
+    // what's this for??
     formEl.reset();
 
     // see if a task in the form already has the task id attribute
@@ -29,13 +32,14 @@ var taskFormHandler = function(event) {
         var taskId = formEl.getAttribute("data-task-id");
         completeEditTask(taskNameInput, taskTypeInput, taskId);
     }
-    // if it does NOT have a data attribute, create object as normal and pass to createTaskEl function (like adding a new task then)
+    // if it does NOT have a data attribute, create object as normal and pass to createTaskEl function (like adding a new task then), which makes sense why the status starts on "to do" for a newly added task
     else {
         var taskDataObj = {
             name: taskNameInput,
-            type: taskTypeInput
+            type: taskTypeInput,
+            status: "to do"
         };
-
+        // pass this object into our function that will create a new task
         createTaskEl(taskDataObj);
     }
 };
@@ -67,8 +71,14 @@ var createTaskEl = function(taskDataObj) {
     // add entire list item to unordered list
     tasksToDoEl.appendChild(listItemEl);
 
+    // we already have a value of the id in this function - taskIdCounter - just need to add that value as a property to the taskDataObj object
+    taskDataObj.id = taskIdCounter;
+
+    // add the object to the tasks array
+    tasks.push(taskDataObj);
     // increase task counter for next unique id
     taskIdCounter++;
+
 };
 
 var createTaskActions = function(taskId) {
@@ -166,7 +176,16 @@ var completeEditTask = function(taskName, taskType, taskId) {
 
     alert("Task Updated!");
 
-    // remove the task Id so new tasks can be made again and change the button text back to normal
+    // update task's in tasks array, loop through tasks array and task object with new content, check to see if the specific task's id property matches the taskId argument that was passed into completeEditTask()
+    for (var i = 0; i < tasks.length; i++) {
+        // parse will convert string data to numerical data, then we can compare (couldn't we use == ?), if the value equals true, then the new values for taskName and taskType will be updated on the task we are looking at
+        if (tasks[i].id === parseInt(taskId)) {
+            tasks[i].name = taskName;
+            tasks[i].type = taskType;
+        }
+    };
+
+    // remove the task Id from the form element so new tasks can be made again and change the button text back to normal
     formEl.removeAttribute("data-task-id");
     document.querySelector("#save-task").textContent = "Add Task";
 };
@@ -176,6 +195,18 @@ var deleteTask = function(taskId) {
     var taskSelected = document.querySelector(".task-item[data-task-id='" + taskId + "']");
     taskSelected.remove();
 
+    // create new array to hold updated list of tasks
+    var updatedTaskArr = [];
+
+    // loop through current tasks
+    for (var i = 0; i < tasks.length; i++) {
+        // if tasks[i].id doesn't match the value of taskId, let's keep that task - it will get added to a new arry called updatedTaskArr which will end up updating the value of the tasks array (so that it leaves out any deleted tasks)
+        if (tasks[i].id !== parseInt(taskId)) {
+            updatedTaskArr.push(tasks[i]);
+        }
+    }
+    // reassign tasks array to be the same as updatedTaskArr
+    tasks = updatedTaskArr;
 };
 
 // change the task status, event.target is a reference to a <select> element
@@ -201,6 +232,13 @@ var taskStatusChangeHandler = function(event) {
     else if (statusValue === "completed") {
         tasksCompletedEl.appendChild(taskSelected);
     }
+
+    // update task's in tasks array
+    for (var i = 0; i < tasks.length; i++) {
+        if (tasks[i].id === parseInt(taskId)) {
+            tasks[i].status = statusValue;
+        }
+    };
 };
 
 pageContentEl.addEventListener("click", taskButtonHandler);
