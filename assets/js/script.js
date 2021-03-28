@@ -79,6 +79,9 @@ var createTaskEl = function(taskDataObj) {
     // increase task counter for next unique id
     taskIdCounter++;
 
+    // save to localStorage
+    saveTasks();
+
 };
 
 var createTaskActions = function(taskId) {
@@ -188,6 +191,9 @@ var completeEditTask = function(taskName, taskType, taskId) {
     // remove the task Id from the form element so new tasks can be made again and change the button text back to normal
     formEl.removeAttribute("data-task-id");
     document.querySelector("#save-task").textContent = "Add Task";
+
+    // save to localStorage
+    saveTasks();
 };
 
 // delete a task
@@ -207,6 +213,9 @@ var deleteTask = function(taskId) {
     }
     // reassign tasks array to be the same as updatedTaskArr
     tasks = updatedTaskArr;
+
+    // save to localStorage
+    saveTasks();
 };
 
 // change the task status, event.target is a reference to a <select> element
@@ -239,6 +248,14 @@ var taskStatusChangeHandler = function(event) {
             tasks[i].status = statusValue;
         }
     };
+
+    // save to localStorage
+    saveTasks();
+};
+
+// save tasks, including when we add, update, and/or delete them, to localStorage. Note that it's using the tasks array here, which is the array we created to hold task info as objects
+var saveTasks = function() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
 pageContentEl.addEventListener("click", taskButtonHandler);
